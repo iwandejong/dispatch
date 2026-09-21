@@ -1,5 +1,5 @@
-FROM node:22-bookworm-slim AS base
-RUN apt-get update -y && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
+FROM node:22-alpine AS base
+RUN apk add --no-cache openssl ca-certificates postgresql17 postgresql17-contrib
 WORKDIR /app
 
 FROM base AS deps
@@ -24,6 +24,9 @@ COPY --from=build --chown=node:node /app/prisma ./prisma
 COPY --from=prisma-cli --chown=node:node /prisma-cli /prisma-cli
 COPY --from=build --chown=node:node /app/node_modules/.prisma ./node_modules/.prisma
 COPY --chown=node:node docker-entrypoint.sh ./
+ENV PGDATA=/data/pg 
+RUN mkdir /data && chown node:node /data
+VOLUME /data
 USER node
 EXPOSE 3000
 ENTRYPOINT ["./docker-entrypoint.sh"]

@@ -28,7 +28,15 @@ One Next.js app + PostgreSQL. No external services, no telemetry, no CDN, no rem
 
 ## Quick start
 
-Requires Docker with Compose. A prebuilt image is published to `ghcr.io/iwandejong/dispatch`.
+### Docker (one command)
+
+```sh
+docker run -d --name dispatch -p 15000:3000 -v dispatch-data:/data ghcr.io/iwandejong/dispatch
+```
+
+Open <http://localhost:15000>. No configuration needed: the image bundles PostgreSQL and applies migrations on start. Data lives in the `dispatch-data` volume.
+
+### Docker Compose (separate Postgres container)
 
 ```sh
 git clone https://github.com/iwandejong/dispatch.git && cd dispatch
