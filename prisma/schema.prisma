@@ -1,0 +1,162 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// The only two identities: the person using the UI, and the coding agent using MCP.
+enum Actor {
+  HUMAN
+  AGENT
+}
+
+enum Status {
+  BACKLOG
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  DONE
+  CANCELLED
+}
+
+enum Priority {
+  NO_PRIORITY
+  URGENT
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum RelationType {
+  BLOCKS
+  BLOCKED_BY
+  RELATES_TO
+  DUPLICATES
+}
+
+enum ActivityType {
+  ISSUE_CREATED
+  STATUS_CHANGED
+  ASSIGNEE_CHANGED
+  PRIORITY_CHANGED
+  COMMENT_ADDED
+  LABEL_ADDED
+  LABEL_REMOVED
+}
+
+model Project {
+  id              String   @id @default(cuid())
+  name            String
+  identifier      String   @unique
+  description     String   @default("")
+  nextIssueNumber Int      @default(1)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  issues Issue[]
+  labels Label[]
+}
+
+model Issue {
+  id          String   @id @default(cuid())
+  projectId   String
+  issueNumber Int
+  title       String
+  description String   @default("")
+  status      Status   @default(BACKLOG)
+  priority    Priority @default(NO_PRIORITY)
+  assignee    Actor?
+  createdBy   Actor
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  project       Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  labels        Label[]
+  comments      Comment[]
+  activity      Activity[]
+  relationsFrom IssueRelation[] @relation("From")
+  relationsTo   IssueRelation[] @relation("To")
+
+  @@unique([projectId, issueNumber])
+  @@index([status])
+  @@index([assignee])
+  @@index([projectId])
+  @@index([projectId, status])
+  @@index([createdAt])
+}
+
+model Label {
+  id        String  @id @default(cuid())
+  projectId String
+  name      String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  issues    Issue[]
+
+  @@unique([projectId, name])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  issueId   String
+  author    Actor
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@index([issueId, createdAt])
+}
+
+model IssueRelation {
+  id        String       @id @default(cuid())
+  fromId    String
+  toId      String
+  type      RelationType
+  createdAt DateTime     @default(now())
+
+  from Issue @relation("From", fields: [fromId], references: [id], onDelete: Cascade)
+  to   Issue @relation("To", fields: [toId], references: [id], onDelete: Cascade)
+
+  @@unique([fromId, toId, type])
+  @@index([toId])
+}
+
+model Activity {
+  id        String       @id @default(cuid())
+  issueId   String
+  actor     Actor
+  type      ActivityType
+  from      String?
+  to        String?
+  createdAt DateTime     @default(now())
+
+  issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@index([issueId, createdAt])
+  @@index([actor])
+  @@index([createdAt])
+}
+
+/// Trace of every mutating operation (UI action or MCP tool call), including failures.
+/// Survives deletion of the things it refers to (target is a plain string key).
+model AuditLog {
+  id         String   @id @default(cuid())
+  requestId  String
+  actor      Actor
+  source     String // "ui" | "mcp" | "system"
+  action     String // e.g. "issue.create", "delete_issue"
+  target     String?
+  ok         Boolean
+  error      String?
+  meta       Json?
+  durationMs Int
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([actor])
+  @@index([action])
+}

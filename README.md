@@ -1,36 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Dispatch
 
-## Getting Started
+A small, fast, **self-hosted, air-gapped** issue tracker where **MCP is a first-class interface** for coding agents.
 
-First, run the development server:
+One Next.js app + PostgreSQL. No external services, no telemetry, no CDN, no remote fonts or images: it works with zero internet access.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Board and list views, labels, relations, Markdown comments, per-issue activity
+- Command palette (⌘/Ctrl + K), keyboard shortcuts (press `?`), PostgreSQL-backed search
+- Built-in MCP server at `http://localhost:3000/mcp` (20+ tools) and an [agent skill](skills/dispatch/SKILL.md)
+- Traceability: structured JSON logs on stdout plus an audit log of every UI and MCP change (Settings → Audit log)
+- **No accounts.** Two fixed actors: **you** (the UI) and **the agent** (everything that arrives over MCP). Issues can be assigned to either.
+
+## Quick start
+
+Requires Docker with Compose.
+
+```sh
+git clone https://github.com/iwandejong/dispatch.git && cd dispatch
+./scripts/init-env.sh        # writes .env with a random database password
+docker compose up -d
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open <http://localhost:3000>, create a project, and start filing issues.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Postgres lives on the internal compose network only (no host port), with a persistent `pgdata` volume and a health check. The app waits for it and applies migrations on start. No demo data is created.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+> ⚠️ There is **no authentication**. The app is published on `127.0.0.1` only. See [SECURITY.md](SECURITY.md) before exposing it to a network.
 
-## Learn More
+## Connect a coding agent
 
-To learn more about Next.js, take a look at the following resources:
+```sh
+claude mcp add --transport http dispatch http://localhost:3000/mcp
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Then install the skill so the agent knows how to use the tools well:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```sh
+ln -s "$PWD/skills/dispatch" ~/.claude/skills/dispatch
+```
 
-## Deploy on Vercel
+Details, other clients and the tool list: [MCP.md](MCP.md).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Architecture
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+Browser ─┐                       ┌─ Server Actions ─┐
+         ├─ Next.js (one app) ───┤                  ├─ lib/services/* ─ Prisma ─ PostgreSQL
+Agent ───┘   UI · auth · /mcp    └─ MCP tools ──────┘
+                                   └── audit + JSON logs
+```
+
+All business rules live in `lib/services/`; UI actions and MCP tools are thin adapters. See [ARCHITECTURE.md](ARCHITECTURE.md).
+
+## Configuration
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `POSTGRES_PASSWORD` | yes | Database password (compose) |
+| `BIND_ADDRESS` | no (default `127.0.0.1`) | Host interface the app port is published on |
+| `DATABASE_URL` | set by compose | Postgres connection string |
+
+## Logs and audit
+
+- `docker compose logs -f app` shows one JSON line per operation: `ts, level, msg, requestId, source (ui|mcp), actor (HUMAN|AGENT), target, ok, error, durationMs`. Secret-looking argument keys are redacted and long text truncated.
+- Every mutation and failed operation is also stored in the `AuditLog` table and shown under **Settings → Audit log**. Reads (search, get, list) are logged to stdout only.
+- Per-issue history (status, assignee, priority, labels, comments) is under each issue's **Activity**.
+
+## Data, backup, upgrade
+
+- Data lives in the `pgdata` Docker volume. `docker compose down` keeps it; `docker compose down -v` **deletes it**.
+- Backup: `docker compose exec -T postgres pg_dump -U dispatch dispatch > backup.sql`
+- Restore into a fresh stack: `docker compose exec -T postgres psql -U dispatch dispatch < backup.sql`
+- Upgrade: `git pull && docker compose up -d --build` (migrations run automatically on start).
+
+## Limitations
+
+Single-user by design (you + one agent, no accounts or permissions). Search uses PostgreSQL trigram indexes and is meant for thousands to tens of thousands of issues. Project pages load up to 200 issues. There is no realtime sync between browser tabs.
+
+## Development, contributing, security
+
+[DEVELOPMENT.md](DEVELOPMENT.md) · [CONTRIBUTING.md](CONTRIBUTING.md) · [SECURITY.md](SECURITY.md) · [MIT License](LICENSE)
+
