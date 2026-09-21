@@ -16,7 +16,7 @@ export default async function Settings() {
           <CardDescription>Point any MCP client at this endpoint (Streamable HTTP). Everything it does is recorded as “Agent”.</CardDescription>
         </CardHeader>
         <CardContent>
-          <code className="block border bg-muted px-3 py-2 font-mono text-xs">http://localhost:3000/mcp</code>
+          <code className="block border bg-muted px-3 py-2 font-mono text-xs">http://localhost:15000/mcp</code>
         </CardContent>
       </Card>
       <AuditPanel rows={audit} />

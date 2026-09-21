@@ -1,6 +1,6 @@
 #!/bin/sh
 # Run a command inside the dev container (same network as Postgres, which is not exposed to the host).
-# For the dev server (publishes :3000; stop the `app` service first): ./dx --service-ports npm run dev
+# For the dev server (publishes :15000; stop the `app` service first): ./dx --service-ports npm run dev
 if docker compose version >/dev/null 2>&1; then DC="docker compose"; else DC="docker-compose"; fi
 if [ "$1" = "--service-ports" ]; then shift; exec $DC --profile dev run --rm --service-ports dev "$@"; fi
 exec $DC --profile dev run --rm dev "$@"

@@ -24,9 +24,9 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql://dispatch:${POSTGRES_PASSWORD}@postgres:5432/dispatch
-    # No authentication: publish on localhost only. Put an authenticating proxy in front to expose it.
+    # No authentication: reachable on all interfaces (0.0.0.0:15000).
     ports:
-      - "${BIND_ADDRESS:-127.0.0.1}:3000:3000"
+      - "0.0.0.0:15000:3000"
     networks: [internal]
 
   # Dev/test toolbox: `docker compose --profile dev run --rm --service-ports dev <cmd>`
@@ -46,7 +46,7 @@ services:
       - node_modules:/work/node_modules
       - next_cache:/work/.next
     ports:
-      - "127.0.0.1:3000:3000"
+      - "0.0.0.0:15000:3000"
     networks: [internal]
 
 networks:

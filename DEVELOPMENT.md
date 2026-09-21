@@ -6,10 +6,10 @@ Postgres is never published to the host. Dev tooling runs in a `dev` container (
 ./scripts/dev-setup.sh              # .env, Postgres, test DB, deps (docker volume), migrations
 ./dx npm run db:seed                # DEV ONLY: example project AIG with sample issues
 docker compose stop app             # if the production-style app container is running
-./dx --service-ports npm run dev    # http://localhost:3000
+./dx --service-ports npm run dev    # http://localhost:15000
 ```
 
-`./dx <cmd>` runs a command in the `dev` container; `./dx --service-ports <cmd>` also publishes port 3000.
+`./dx <cmd>` runs a command in the `dev` container; `./dx --service-ports <cmd>` also publishes port 15000.
 
 | Task | Command |
 |---|---|

@@ -8,8 +8,8 @@ Please report privately via GitHub's **"Report a vulnerability"** (Security tab 
 
 ## Threat model and defaults
 
-- Anyone who can reach port 3000 can read and change everything, in the UI and over `/mcp`. Therefore the app is published on `127.0.0.1` only (`BIND_ADDRESS`, default `127.0.0.1`).
-- If you set `BIND_ADDRESS=0.0.0.0` or run behind a reverse proxy, put authentication in front (VPN, SSO-aware proxy, basic auth, ...). Do not expose it to the internet as-is.
+- Anyone who can reach port 15000 can read and change everything, in the UI and over `/mcp`. The app is published on `0.0.0.0:15000`.
+- Put authentication in front (VPN, SSO-aware proxy, basic auth, ...). Do not expose it to the internet as-is.
 - `/mcp` rejects browser requests whose `Origin` differs from the host (blocks drive-by requests from web pages you visit). It does not authenticate non-browser clients.
 - Postgres is not published to the host; keep it that way. Use a strong `POSTGRES_PASSWORD` (`./scripts/init-env.sh` generates one) and never commit `.env`.
 - The audit log and JSON logs redact secret-looking argument keys, but they contain issue titles and other content you type. Treat them as sensitive.

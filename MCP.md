@@ -1,19 +1,19 @@
 # MCP
 
-Endpoint: `http://localhost:3000/mcp` — MCP **Streamable HTTP**, stateless, JSON responses. Implemented in the Next.js app with the official `@modelcontextprotocol/sdk`.
+Endpoint: `http://localhost:15000/mcp` — MCP **Streamable HTTP**, stateless, JSON responses. Implemented in the Next.js app with the official `@modelcontextprotocol/sdk`.
 
 ## Identity and access
 
 There is no token or login. Everything arriving over MCP is recorded as the **agent**; everything done in the browser is recorded as **you** (the human). Issues can be assigned to `"human"` or `"agent"`, and `my_work` returns the agent's open issues.
 
-Because the endpoint has no credentials, it refuses browser requests from other origins (HTTP 403 if an `Origin` header doesn't match the host), and the app is published on `127.0.0.1` by default. See [SECURITY.md](SECURITY.md).
+Because the endpoint has no credentials, it refuses browser requests from other origins (HTTP 403 if an `Origin` header doesn't match the host), and the app is published on `0.0.0.0:15000`. See [SECURITY.md](SECURITY.md).
 
 ## Client configuration
 
 Claude Code:
 
 ```sh
-claude mcp add --transport http dispatch http://localhost:3000/mcp
+claude mcp add --transport http dispatch http://localhost:15000/mcp
 ```
 
 or `.mcp.json`:
@@ -23,7 +23,7 @@ or `.mcp.json`:
   "mcpServers": {
     "dispatch": {
       "type": "http",
-      "url": "http://localhost:3000/mcp"
+      "url": "http://localhost:15000/mcp"
     }
   }
 }
@@ -73,7 +73,7 @@ Failures are tool results with `isError: true` and text `CODE: message`, where C
 ## Try it
 
 ```sh
-curl -s http://localhost:3000/mcp \
+curl -s http://localhost:15000/mcp \
   -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
 ```
