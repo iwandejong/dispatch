@@ -1,18 +1,34 @@
+<div align="center">
+
+<img src="logo.png" alt="Dispatch logo" width="140" />
+
 # Dispatch
 
-A small, fast, **self-hosted, air-gapped** issue tracker where **MCP is a first-class interface** for coding agents.
+**A self-hosted, air-gapped issue tracker where MCP is a first-class interface for coding agents.**
+
+[![CI](https://github.com/iwandejong/dispatch/actions/workflows/ci.yml/badge.svg)](https://github.com/iwandejong/dispatch/actions/workflows/ci.yml)
+[![Image](https://img.shields.io/badge/ghcr.io-iwandejong%2Fdispatch-blue?logo=docker&logoColor=white)](https://ghcr.io/iwandejong/dispatch)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
+[Quick start](#quick-start) · [Connect an agent](#connect-a-coding-agent) · [MCP tools](MCP.md) · [Architecture](ARCHITECTURE.md) · [Security](SECURITY.md)
+
+</div>
+
+---
 
 One Next.js app + PostgreSQL. No external services, no telemetry, no CDN, no remote fonts or images: it works with zero internet access.
 
-- Board and list views, labels, relations, Markdown comments, per-issue activity
-- Command palette (⌘/Ctrl + K), keyboard shortcuts (press `?`), PostgreSQL-backed search
-- Built-in MCP server at `http://localhost:15000/mcp` (20+ tools) and an [agent skill](skills/dispatch/SKILL.md)
-- Traceability: structured JSON logs on stdout plus an audit log of every UI and MCP change (Settings → Audit log)
-- **No accounts.** Two fixed actors: **you** (the UI) and **the agent** (everything that arrives over MCP). Issues can be assigned to either.
+## Features
+
+- 📋 **Board and list views**, labels, relations, Markdown comments, per-issue activity
+- ⌨️ **Command palette** (⌘/Ctrl + K), keyboard shortcuts (press `?`), PostgreSQL-backed search
+- 🤖 **Built-in MCP server** at `http://localhost:15000/mcp` (20+ tools) and an [agent skill](skills/dispatch/SKILL.md)
+- 🔍 **Traceability**: structured JSON logs on stdout plus an audit log of every UI and MCP change (Settings → Audit log)
+- 👥 **No accounts.** Two fixed actors: **you** (the UI) and **the agent** (everything that arrives over MCP). Issues can be assigned to either
 
 ## Quick start
 
-Requires Docker with Compose.
+Requires Docker with Compose. A prebuilt image is published to `ghcr.io/iwandejong/dispatch`.
 
 ```sh
 git clone https://github.com/iwandejong/dispatch.git && cd dispatch
